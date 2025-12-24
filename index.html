@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp Invoice Generator</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f8;
+        margin: 0;
+        padding: 10px;
+    }
+
+    .container {
+        max-width: 420px;
+        margin: auto;
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    
+    
+    input{
+        width: 90%;
+        padding: 10px;
+        margin-top: 8px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+    }
+
+     button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 8px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+    }
+
+    button {
+        background: #25D366;
+        color: white;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button.secondary {
+        background: #007bff;
+        margin-top: 8px;
+    }
+
+    table {
+        width: 100%;
+        margin-top: 10px;
+        border-collapse: collapse;
+    }
+
+    table th, table td {
+        border-bottom: 1px solid #ddd;
+        padding: 6px;
+        font-size: 13px;
+        text-align: center;
+    }
+
+    .invoice {
+        margin-top: 15px;
+        padding: 10px;
+        border: 1px dashed #aaa;
+        background: #fff;
+    }
+
+    .total {
+        text-align: right;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    .customer-input {
+        width: 95%;
+        max-width: 100%;
+        margin: auto;
+        display: block;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>WhatsApp Invoice</h2>
+
+    <input type="text" id="customerName" class="customer-input" placeholder="Customer Name">
+
+    <table id="itemsTable">
+        <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Price</th>
+        </tr>
+        <tr>
+            <td><input placeholder="Item"></td>
+            <td><input type="number" value="1"></td>
+            <td><input type="number" value="0"></td>
+        </tr>
+    </table>
+
+    <button class="secondary" onclick="addItem()">+ Add Item</button>
+    <button onclick="generateInvoice()">Generate Invoice</button>
+
+    <div id="invoice" class="invoice" style="display:none;"></div>
+    <button id="shareBtn" style="display:none;" onclick="shareWhatsApp()">Share to WhatsApp</button>
+    <button id="downloadBtn" style="display:none;" onclick="downloadInvoice()">Download Invoice</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+let invoiceImage = "";
+
+function addItem() {
+    const table = document.getElementById("itemsTable");
+    const row = table.insertRow();
+    row.innerHTML = `
+        <td><input placeholder="Item"></td>
+        <td><input type="number" value="1"></td>
+        <td><input type="number" value="0"></td>
+    `;
+}
+
+function generateInvoice() {
+    const name = document.getElementById("customerName").value;
+    const rows = document.querySelectorAll("#itemsTable tr");
+    let html = `<h3>Invoice</h3><p><strong>Customer:</strong> ${name}</p><table width="100%">`;
+    let total = 0;
+
+    for (let i = 1; i < rows.length; i++) {
+        const inputs = rows[i].querySelectorAll("input");
+        const item = inputs[0].value;
+        const qty = parseFloat(inputs[1].value);
+        const price = parseFloat(inputs[2].value);
+        const amount = qty * price;
+        total += amount;
+
+        html += `<tr><td>${item}</td><td>${qty}</td><td>${amount.toFixed(2)}</td></tr>`;
+    }
+
+    html += `</table><p class="total">Total: Rs. ${total.toFixed(2)}</p>`;
+
+    const invoiceDiv = document.getElementById("invoice");
+    invoiceDiv.innerHTML = html;
+    invoiceDiv.style.display = "block";
+
+    html2canvas(invoiceDiv).then(canvas => {
+        invoiceImage = canvas.toDataURL("image/png");
+        document.getElementById("shareBtn").style.display = "block";
+        document.getElementById("downloadBtn").style.display = "block";
+    });
+}
+
+function shareWhatsApp() {
+    const text = encodeURIComponent("Invoice generated. Please check the details.");
+    const url = `https://wa.me/?text=${text}`;
+    window.open(url, "_blank");
+}
+
+function downloadInvoice() {
+    if(invoiceImage) {
+        const a = document.createElement("a");
+        a.href = invoiceImage;
+        a.download = "invoice.png";
+        a.click();
+    }
+}
+</script>
+
+</body>
+</html>
